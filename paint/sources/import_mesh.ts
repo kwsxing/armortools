@@ -27,20 +27,22 @@ function import_mesh_run(path: string, _clear_layers: bool = true, replace_exist
 		let ext: string      = substring(path, string_last_index_of(path, ".") + 1, path.length);
 		let importer: any    = map_get(path_mesh_importers, ext); // JSValue -> (s: string)=>raw_mesh_t
 		let mesh: raw_mesh_t = js_pcall_str(importer, path);
-		if (mesh.name == "") {
-			mesh.name = path_base_name(path);
-		}
-
-		replace_existing ? import_mesh_make_mesh(mesh) : import_mesh_add_mesh(mesh);
-
-		let has_next: bool = mesh.has_next;
-		while (has_next) {
-			let mesh: raw_mesh_t = js_pcall_str(importer, path);
+		if (mesh != null) {
 			if (mesh.name == "") {
 				mesh.name = path_base_name(path);
 			}
-			has_next = mesh.has_next;
-			import_mesh_add_mesh(mesh);
+
+			replace_existing ? import_mesh_make_mesh(mesh) : import_mesh_add_mesh(mesh);
+
+			let has_next: bool = mesh.has_next;
+			while (has_next) {
+				let mesh: raw_mesh_t = js_pcall_str(importer, path);
+				if (mesh.name == "") {
+					mesh.name = path_base_name(path);
+				}
+				has_next = mesh.has_next;
+				import_mesh_add_mesh(mesh);
+			}
 		}
 	}
 

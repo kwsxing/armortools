@@ -578,7 +578,7 @@ void *io_gltf_parse_v2(char *buf, size_t size, const char *path) {
 		cgltf_load_buffers(&gltf_options, gltf_data, path);
 
 		any_array_t *meshes = any_array_create(gltf_data->nodes_count);
-		memset(meshes->buffer, 0, sizeof(void *) * gltf_data->nodes_count);
+		memset(meshes->buffer, 0, sizeof(raw_mesh_t *) * gltf_data->nodes_count);
 
 		for (uint32_t i = 0; i < gltf_data->nodes_count; ++i) {
 			cgltf_node *n = &gltf_data->nodes[i];
@@ -609,7 +609,6 @@ void *io_gltf_parse_v2(char *buf, size_t size, const char *path) {
 			}
 			else {
 				obj_destroy(part);
-				gc_free(part);
 			}
 		}
 

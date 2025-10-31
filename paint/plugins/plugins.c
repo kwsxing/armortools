@@ -50,10 +50,11 @@ FN(io_gltf_parse) {
 }
 
 void *io_fbx_parse(char *buf, size_t size);
+void *io_fbx_parse_v2(char *buf, size_t size);
 FN(io_fbx_parse) {
 	size_t len;
 	void  *ab = JS_GetArrayBuffer(ctx, &len, argv[0]);
-	return JS_NewBigUint64(ctx, (uint64_t)io_fbx_parse(ab, len));
+	return JS_NewBigUint64(ctx, (uint64_t)io_fbx_parse_v2(ab, len));
 }
 
 VOID_FN_STR(console_log)
