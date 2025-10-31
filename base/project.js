@@ -71,6 +71,10 @@ if (platform == "windows") {
 		project.add_lib("d3d11");
 		project.add_lib("d3dcompiler");
 	}
+	if (flags.with_openmp) {
+		project.add_define("ENABLE_OPENMP");
+		project.add_lib("vcomp");
+	}
 }
 else if (platform == "linux") {
 	add_sys_backend("linux");

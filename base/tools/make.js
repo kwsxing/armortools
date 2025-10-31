@@ -2346,6 +2346,7 @@ function load_project(directory, is_root_project) {
             with_plugins : false,
             with_kong : false,
             with_raytrace : false,
+			with_openmp: false,
             idle_sleep : false,
             export_version_info : false,
             export_data_list : false
