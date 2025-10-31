@@ -27,3 +27,4 @@ typedef struct raw_mesh {
 
 raw_mesh_t *obj_parse(buffer_t *file_bytes, char split_code, uint64_t start_pos, bool udim);
 void        obj_destroy(raw_mesh_t *part);
+raw_mesh_t *obj_merge(any_array_t *meshes, bool with_texa, bool with_col);

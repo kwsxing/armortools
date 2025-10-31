@@ -4,6 +4,7 @@
 #include "iron_gc.h"
 #include "iron_string.h"
 #include "iron_vec4.h"
+#include <assert.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
@@ -669,4 +670,169 @@ void obj_destroy(raw_mesh_t *part) {
 	free(part->texa);
 	free(part->inda);
 	gc_free(part);
+}
+
+raw_mesh_t *obj_merge(any_array_t *meshes, bool with_texa, bool with_col) {
+	assert(meshes != NULL);
+	assert(meshes->length > 0);
+	if (meshes == NULL || meshes->length == 0)
+		return NULL;
+
+	uint32_t *range_start  = malloc(sizeof(size_t) * meshes->length);
+	uint32_t *range_end    = malloc(sizeof(size_t) * meshes->length);
+	uint32_t *vertex_start = malloc(sizeof(size_t) * meshes->length);
+	uint32_t *vertex_end   = malloc(sizeof(size_t) * meshes->length);
+
+	for (uint32_t i = 0; i < meshes->length; ++i) {
+		const raw_mesh_t *const mesh              = (const raw_mesh_t *const)meshes->buffer[i];
+		const uint32_t          mesh_index_count  = mesh == NULL ? 0 : mesh->index_count;
+		const uint32_t          mesh_vertex_count = mesh == NULL ? 0 : mesh->vertex_count;
+		if (i == 0) {
+			range_start[i]  = 0;
+			range_end[i]    = mesh_index_count;
+			vertex_start[i] = 0;
+			vertex_end[i]   = mesh_vertex_count;
+		}
+		else {
+			range_start[i]  = range_end[i - 1];
+			range_end[i]    = range_start[i] + mesh_index_count;
+			vertex_start[i] = vertex_end[i - 1];
+			vertex_end[i]   = vertex_start[i] + mesh_vertex_count;
+		}
+	}
+
+	const size_t index_count  = range_end[meshes->length - 1];
+	const size_t vertex_count = vertex_end[meshes->length - 1];
+	raw_mesh_t  *merged_mesh  = NULL;
+	if (index_count > 0 && vertex_count > 0) {
+		merged_mesh = malloc(sizeof(raw_mesh_t));
+		memset(merged_mesh, 0, sizeof(raw_mesh_t));
+
+		merged_mesh->inda           = calloc(sizeof(u32_array_t), 1);
+		merged_mesh->inda->length   = index_count;
+		merged_mesh->inda->capacity = merged_mesh->inda->length;
+		merged_mesh->inda->buffer   = malloc(sizeof(uint32_t) * merged_mesh->inda->capacity);
+
+		merged_mesh->posa           = calloc(sizeof(i16_array_t), 1);
+		merged_mesh->posa->length   = vertex_count * 4;
+		merged_mesh->posa->capacity = merged_mesh->posa->length;
+		merged_mesh->posa->buffer   = malloc(sizeof(int16_t) * merged_mesh->posa->capacity);
+		merged_mesh->nora           = calloc(sizeof(i16_array_t), 1);
+		merged_mesh->nora->length   = vertex_count * 2;
+		merged_mesh->nora->capacity = merged_mesh->nora->length;
+		merged_mesh->nora->buffer   = malloc(sizeof(int16_t) * merged_mesh->nora->capacity);
+		if (with_texa) {
+			merged_mesh->texa           = calloc(sizeof(i16_array_t), 1);
+			merged_mesh->texa->length   = vertex_count * 2;
+			merged_mesh->texa->capacity = merged_mesh->texa->length;
+			merged_mesh->texa->buffer   = malloc(sizeof(int16_t) * merged_mesh->texa->capacity);
+		}
+		if (with_col) {
+			merged_mesh->cola           = calloc(sizeof(i16_array_t), 1);
+			merged_mesh->cola->length   = vertex_count * 4;
+			merged_mesh->cola->capacity = merged_mesh->cola->length;
+			merged_mesh->cola->buffer   = malloc(sizeof(int16_t) * merged_mesh->cola->capacity);
+		}
+
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
+		for (uint32_t i = 0; i < meshes->length; ++i) {
+#else
+		for (uint32_t i = 0; i < meshes->length; ++i) {
+#endif
+			const uint32_t index_start = vertex_start[i];
+			const uint32_t index_end   = vertex_end[i];
+
+			const raw_mesh_t *const mesh = (const raw_mesh_t *const)meshes->buffer[i];
+			if (mesh == NULL)
+				continue;
+
+			if (mesh->index_count == 0)
+				continue;
+
+			memcpy(merged_mesh->posa->buffer + index_start * 4, mesh->posa->buffer, sizeof(int16_t) * mesh->posa->length);
+			memcpy(merged_mesh->nora->buffer + index_start * 2, mesh->nora->buffer, sizeof(int16_t) * mesh->nora->length);
+
+			if (with_texa) {
+				if (mesh->texa != NULL && mesh->texa->buffer != NULL) {
+					memcpy(merged_mesh->texa->buffer + index_start * 2, mesh->texa->buffer, sizeof(int16_t) * mesh->texa->length);
+				}
+				else {
+					memset(merged_mesh->texa->buffer + index_start * 2, 0, sizeof(int16_t) * mesh->vertex_count);
+				}
+			}
+
+			if (with_col) {
+				if (mesh->cola != NULL && mesh->cola->buffer != NULL) {
+					memcpy(merged_mesh->cola->buffer + index_start * 4, mesh->cola->buffer, sizeof(int16_t) * mesh->cola->length);
+				}
+				else {
+					memset(merged_mesh->cola->buffer + index_start * 4, 32767, sizeof(int16_t) * mesh->vertex_count);
+				}
+			}
+		}
+
+		for (uint32_t i = 0; i < meshes->length; ++i) {
+			const raw_mesh_t *const mesh = (const raw_mesh_t *const)meshes->buffer[i];
+			if (mesh == NULL)
+				continue;
+
+			const uint32_t index_start  = range_start[i];
+			const uint32_t index_vertex = vertex_start[i];
+
+			memcpy(merged_mesh->inda->buffer + index_start, mesh->inda->buffer, sizeof(uint32_t) * mesh->index_count);
+
+			if (index_start > 0) {
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
+				for (uint32_t i = 0; i < mesh->index_count; ++i) {
+#else
+				for (uint32_t i = 0; i < mesh->index_count; ++i) {
+#endif
+					merged_mesh->inda->buffer[index_start + i] += index_vertex;
+				}
+			}
+		}
+
+		raw_mesh_t *mesh_first = NULL;
+		for (uint32_t i = 0; i < meshes->length; ++i) {
+			const raw_mesh_t *const mesh = (const raw_mesh_t *const)meshes->buffer[i];
+			if (mesh == NULL)
+				continue;
+			mesh_first = mesh;
+			break;
+		}
+
+		if (mesh_first != NULL) {
+			if (mesh_first->name != NULL) {
+				merged_mesh->name = malloc(sizeof(char) * strlen(mesh_first->name) + 1);
+				strcpy(merged_mesh->name, mesh_first->name);
+			}
+			merged_mesh->scale_pos = mesh_first->scale_pos;
+			merged_mesh->scale_tex = mesh_first->scale_tex;
+		}
+		else {
+			merged_mesh->scale_pos = 1;
+			merged_mesh->scale_tex = 1;
+		}
+		if (merged_mesh->name == NULL) {
+			merged_mesh->name    = malloc(sizeof(char) * 1);
+			merged_mesh->name[0] = '\0';
+		}
+
+		merged_mesh->index_count  = index_count;
+		merged_mesh->vertex_count = vertex_count;
+
+		if (merged_mesh->name == NULL)
+			merged_mesh->name = string_copy("");
+	}
+
+	free(range_start);
+	free(range_end);
+	free(vertex_start);
+	free(vertex_end);
+
+	return merged_mesh;
 }

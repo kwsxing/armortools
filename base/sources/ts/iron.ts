@@ -365,6 +365,7 @@ declare function iron_window_x(): i32;
 declare function iron_window_y(): i32;
 declare function iron_language(): string;
 declare function obj_parse(file_bytes: buffer_t, split_code: i32, start_pos: i32, udim: bool): any;
+declare function obj_merge(meshes: raw_mesh_t[], with_texa: bool, with_col: bool): raw_mesh_t;
 
 declare function armpack_decode(b: buffer_t): any;
 declare function armpack_encode_start(encoded: any): void;
