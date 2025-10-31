@@ -517,7 +517,13 @@ raw_mesh_t *obj_parse(buffer_t *file_bytes, char split_code, uint64_t start_pos,
 		part->nora->length = part->nora->capacity = nor_indices.length * 2;
 		part->nora->buffer                        = malloc(part->nora->capacity * sizeof(int16_t));
 
-		for (int i = 0; i < pos_indices.length; ++i) {
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
+		for (int i = 0, ic = pos_indices.length; i < ic; ++i) {
+#else
+		for (int i = 0, ic = pos_indices.length; i < ic; ++i) {
+#endif
 			part->nora->buffer[i * 2]     = (int)(nor_temp.buffer[nor_indices.buffer[i] * 3] * 32767);
 			part->nora->buffer[i * 2 + 1] = (int)(-nor_temp.buffer[nor_indices.buffer[i] * 3 + 2] * 32767);
 			part->posa->buffer[i * 4 + 3] = (int)(nor_temp.buffer[nor_indices.buffer[i] * 3 + 1] * 32767);
@@ -529,7 +535,13 @@ raw_mesh_t *obj_parse(buffer_t *file_bytes, char split_code, uint64_t start_pos,
 		part->nora->length = part->nora->capacity = inda_length * 2;
 		part->nora->buffer                        = malloc(part->nora->capacity * sizeof(int16_t));
 
-		for (int i = 0; i < (int)(inda_length / 3); ++i) {
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
+		for (int i = 0, ic = (int)(inda_length / 3); i < ic; ++i) {
+#else
+		for (int i = 0, ic = (int)(inda_length / 3); i < ic; ++i) {
+#endif
 			int            i1 = part->inda->buffer[i * 3];
 			int            i2 = part->inda->buffer[i * 3 + 1];
 			int            i3 = part->inda->buffer[i * 3 + 2];
