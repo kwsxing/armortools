@@ -317,6 +317,7 @@ function render_path_base_draw_taa(bufa: string, bufb: string) {
 	render_path_bind_target(bufa, "tex");
 
 	let skip_taa: bool = context_raw.split_view;
+	skip_taa = true;
 	if (skip_taa) {
 		render_path_draw_shader("Scene/copy_pass/copyRGBA64_pass");
 	}

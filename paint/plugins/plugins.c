@@ -41,11 +41,12 @@ FN(io_usd_parse) {
 }
 
 void *io_gltf_parse(char *buf, size_t size, const char *path);
+void *io_gltf_parse_v2(char *buf, size_t size, const char *path);
 FN(io_gltf_parse) {
 	size_t      len;
 	void       *ab   = JS_GetArrayBuffer(ctx, &len, argv[0]);
 	const char *path = JS_ToCString(ctx, argv[1]);
-	return JS_NewBigUint64(ctx, (uint64_t)io_gltf_parse(ab, len, path));
+	return JS_NewBigUint64(ctx, (uint64_t)io_gltf_parse_v2(ab, len, path));
 }
 
 void *io_fbx_parse(char *buf, size_t size);

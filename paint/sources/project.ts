@@ -370,6 +370,12 @@ function project_import_mesh(replace_existing: bool = true, done: () => void = n
 		// Show .fbx in the file picker even when fbx plugin is not yet enabled
 		formats += ",fbx";
 	}
+	if (string_index_of(formats, "gltf") == -1) {
+		formats += ",gltf";
+	}
+	if (string_index_of(formats, "glb") == -1) {
+		formats += ",glb";
+	}
 	ui_files_show(formats, false, false, function(path: string) {
 		project_import_mesh_box(path, _project_import_mesh_replace_existing, true, _project_import_mesh_done);
 	});
@@ -406,6 +412,15 @@ function project_import_mesh_box(path: string, replace_existing: bool = true, cl
 				let h: ui_handle_t      = ui_handle(__ID__);
 				h.b                     = context_raw.parse_vcols;
 				context_raw.parse_vcols = ui_check(h, tr("Parse Vertex Colors"));
+				if (ui.is_hovered) {
+					ui_tooltip(tr("Import vertex color data"));
+				}
+			}
+
+			if (ends_with(to_lower_case(path), ".gltf") || ends_with(to_lower_case(path), ".glb")) {
+				let h: ui_handle_t     = ui_handle(__ID__);
+				h.b                    = context_raw.parse_texs;
+				context_raw.parse_texs = ui_check(h, tr("Parse Texcoord"));
 				if (ui.is_hovered) {
 					ui_tooltip(tr("Import vertex color data"));
 				}
