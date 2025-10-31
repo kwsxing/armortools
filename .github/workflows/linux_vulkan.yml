@@ -4,9 +4,11 @@ on:
   push:
     branches:
     - main
+    - kws
   pull_request:
     branches:
     - main
+    - kws
 
 jobs:
   build:
