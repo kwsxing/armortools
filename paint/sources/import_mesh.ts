@@ -2,7 +2,7 @@
 let import_mesh_clear_layers: bool      = true;
 let import_mesh_meshes_to_unwrap: any[] = null;
 
-function import_mesh_run(path: string, _clear_layers: bool = true, replace_existing: bool = true) {
+function import_mesh_run(path: string, _clear_layers: bool = true, replace_existing: bool = true, progress_callback: (completed: u32, total: u32, message: string) => bool = null) {
 
 	if (!path_is_mesh(path)) {
 		if (!context_enable_import_plugin(path)) {
@@ -25,8 +25,9 @@ function import_mesh_run(path: string, _clear_layers: bool = true, replace_exist
 	}
 	else {
 		let ext: string      = substring(path, string_last_index_of(path, ".") + 1, path.length);
+		ext                  = to_lower_case(ext); // our importer is registed in the lower
 		let importer: any    = map_get(path_mesh_importers, ext); // JSValue -> (s: string)=>raw_mesh_t
-		let mesh: raw_mesh_t = js_pcall_str(importer, path);
+		let mesh: raw_mesh_t = js_pcall_str_ptr(importer, path, progress_callback);
 		if (mesh != null) {
 			if (mesh.name == "") {
 				mesh.name = path_base_name(path);
@@ -36,7 +37,7 @@ function import_mesh_run(path: string, _clear_layers: bool = true, replace_exist
 
 			let has_next: bool = mesh.has_next;
 			while (has_next) {
-				let mesh: raw_mesh_t = js_pcall_str(importer, path);
+				let mesh: raw_mesh_t = js_pcall_str_ptr(importer, path, progress_callback);
 				if (mesh.name == "") {
 					mesh.name = path_base_name(path);
 				}

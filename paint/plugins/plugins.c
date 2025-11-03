@@ -1,5 +1,6 @@
 
 #include "../../../base/sources/plugins/plugin_api.h"
+#include "io_mesh.h"
 #include "iron_array.h"
 #include "iron_map.h"
 #include "iron_ui.h"
@@ -41,20 +42,27 @@ FN(io_usd_parse) {
 }
 
 void *io_gltf_parse(char *buf, size_t size, const char *path);
-void *io_gltf_parse_v2(char *buf, size_t size, const char *path);
+void *io_gltf_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback);
 FN(io_gltf_parse) {
 	size_t      len;
 	void       *ab   = JS_GetArrayBuffer(ctx, &len, argv[0]);
 	const char *path = JS_ToCString(ctx, argv[1]);
-	return JS_NewBigUint64(ctx, (uint64_t)io_gltf_parse_v2(ab, len, path));
+	io_mesh_progress_callback progress_callback = NULL;
+	if (JS_ToBigUint64(ctx, &progress_callback, argv[2]))
+		progress_callback = NULL;
+	return JS_NewBigUint64(ctx, (uint64_t)io_gltf_parse_v2(ab, len, path, progress_callback));
 }
 
 void *io_fbx_parse(char *buf, size_t size);
-void *io_fbx_parse_v2(char *buf, size_t size);
+void *io_fbx_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback);
 FN(io_fbx_parse) {
 	size_t len;
 	void  *ab = JS_GetArrayBuffer(ctx, &len, argv[0]);
-	return JS_NewBigUint64(ctx, (uint64_t)io_fbx_parse_v2(ab, len));
+	const char *path = JS_ToCString(ctx, argv[1]);
+	io_mesh_progress_callback progress_callback = NULL;
+	if (JS_ToBigUint64(ctx, &progress_callback, argv[2]))
+		progress_callback = NULL;
+	return JS_NewBigUint64(ctx, (uint64_t)io_fbx_parse_v2(ab, len, path, progress_callback));
 }
 
 VOID_FN_STR(console_log)
@@ -269,8 +277,8 @@ void plugin_embed() {
 	BIND(io_svg_parse, 1);
 	BIND(io_exr_parse, 1);
 	BIND(io_usd_parse, 1);
-	BIND(io_gltf_parse, 2);
-	BIND(io_fbx_parse, 1);
+	BIND(io_gltf_parse, 3);
+	BIND(io_fbx_parse, 3);
 
 	BIND(console_log, 1);
 	BIND(console_info, 1);

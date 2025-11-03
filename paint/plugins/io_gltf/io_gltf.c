@@ -1,5 +1,6 @@
 
 #include "cgltf.h"
+#include "io_mesh.h"
 
 #include "iron_array.h"
 #include "iron_gc.h"
@@ -14,141 +15,74 @@
 static bool  has_next  = false;
 static float scale_pos = 1.0;
 
-typedef uint32_t (*func_value_cast_u32)(const uint8_t *const data);
-typedef float (*func_value_cast_float)(const uint8_t *const data);
-
-static uint32_t value_cast_i8_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_i8_to_u32(const uint8_t *const data) {
 	int8_t v = *((int8_t *)data);
 	return (uint32_t)v;
 }
 
-static uint32_t value_cast_u8_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_u8_to_u32(const uint8_t *const data) {
 	uint8_t v = *((uint8_t *)data);
 	return (uint32_t)v;
 }
 
-static uint32_t value_cast_i16_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_i16_to_u32(const uint8_t *const data) {
 	int16_t v = *((int16_t *)data);
 	return (uint32_t)v;
 }
 
-static uint32_t value_cast_u16_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_u16_to_u32(const uint8_t *const data) {
 	uint16_t v = *((uint16_t *)data);
 	return (uint32_t)v;
 }
 
-static uint32_t value_cast_i32_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_i32_to_u32(const uint8_t *const data) {
 	int32_t v = *((int32_t *)data);
 	return (uint32_t)v;
 }
 
-static uint32_t value_cast_u32_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_u32_to_u32(const uint8_t *const data) {
 	uint32_t v = *((uint32_t *)data);
 	return (uint32_t)v;
 }
 
-static uint32_t value_cast_float_to_u32(const uint8_t *const data) {
+static uint32_t io_gltf_cast_float_to_u32(const uint8_t *const data) {
 	float v = *((float *)data);
 	return (uint32_t)v;
 }
 
-static float value_cast_i8_to_float(const uint8_t *const data) {
+static float io_gltf_cast_i8_to_float(const uint8_t *const data) {
 	int8_t v = *((int8_t *)data);
 	return (float)v;
 }
 
-static float value_cast_u8_to_float(const uint8_t *const data) {
+static float io_gltf_cast_u8_to_float(const uint8_t *const data) {
 	uint8_t v = *((uint8_t *)data);
 	return (float)v;
 }
 
-static float value_cast_i16_to_float(const uint8_t *const data) {
+static float io_gltf_cast_i16_to_float(const uint8_t *const data) {
 	int16_t v = *((int16_t *)data);
 	return (float)v;
 }
 
-static float value_cast_u16_to_float(const uint8_t *const data) {
+static float io_gltf_cast_u16_to_float(const uint8_t *const data) {
 	uint16_t v = *((uint16_t *)data);
 	return (float)v;
 }
 
-static float value_cast_i32_to_float(const uint8_t *const data) {
+static float io_gltf_cast_i32_to_float(const uint8_t *const data) {
 	int32_t v = *((int32_t *)data);
 	return (float)v;
 }
 
-static float value_cast_u32_to_float(const uint8_t *const data) {
+static float io_gltf_cast_u32_to_float(const uint8_t *const data) {
 	uint32_t v = *((uint32_t *)data);
 	return (float)v;
 }
 
-static float value_cast_float_to_float(const uint8_t *const data) {
+static float io_gltf_cast_float_to_float(const uint8_t *const data) {
 	float v = *((float *)data);
 	return (float)v;
-}
-
-static uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
-                                 func_value_cast_u32 value_cast) {
-	assert(buffer != NULL);
-	assert(count != 0);
-	assert(num_component != 0);
-	assert(stride >= (num_component * stride_component));
-
-	uint32_t *res = malloc(sizeof(uint32_t) * count * num_component);
-	if (stride == (sizeof(uint32_t) * count * num_component))
-		memcpy(res, buffer, sizeof(uint32_t) * count * num_component);
-	else {
-#if defined(ENABLE_OPENMP)
-#pragma omp parallel
-#pragma omp for
-		for (uint32_t i = 0; i < count; ++i) {
-#else
-		for (uint32_t i = 0; i < count; ++i) {
-#endif
-			for (uint32_t j = 0; j < num_component; ++j) {
-				if (value_cast) {
-					res[i * num_component + j] = value_cast(buffer + i * stride + j * stride_component);
-				}
-				else {
-					res[i * num_component + j] = *(uint32_t *)(buffer + i * stride + j * stride_component);
-				}
-			}
-		}
-	}
-
-	return res;
-}
-
-static float *float_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
-                                func_value_cast_float value_cast) {
-	assert(buffer != NULL);
-	assert(count != 0);
-	assert(num_component != 0);
-	assert(stride >= (num_component * stride_component));
-
-	float *res = malloc(sizeof(float) * count * num_component);
-	if (stride == (sizeof(float) * count * num_component))
-		memcpy(res, buffer, sizeof(float) * count * num_component);
-	else {
-#if defined(ENABLE_OPENMP)
-#pragma omp parallel
-#pragma omp for
-		for (uint32_t i = 0; i < count; ++i) {
-#else
-		for (uint32_t i = 0; i < count; ++i) {
-#endif
-			for (uint32_t j = 0; j < num_component; ++j) {
-				if (value_cast) {
-					res[i * num_component + j] = value_cast(buffer + i * stride + j * stride_component);
-				}
-				else {
-					res[i * num_component + j] = *(float *)(buffer + i * stride + j * stride_component);
-				}
-			}
-		}
-	}
-
-	return res;
 }
 
 static uint32_t *io_gltf_read_u32(const cgltf_accessor *const a) {
@@ -184,37 +118,37 @@ static uint32_t *io_gltf_read_u32(const cgltf_accessor *const a) {
 		break;
 	}
 
-	uint32_t            stride_component = 0;
-	func_value_cast_u32 func_value_cast  = NULL;
+	uint32_t             stride_component = 0;
+	func_memory_cast_u32 func_memory_cast = NULL;
 	switch (a->component_type) {
 	case cgltf_component_type_r_8:
 		stride_component = sizeof(int8_t);
-		func_value_cast  = value_cast_i8_to_u32;
+		func_memory_cast = io_gltf_cast_i8_to_u32;
 		break;
 
 	case cgltf_component_type_r_8u:
 		stride_component = sizeof(uint8_t);
-		func_value_cast  = value_cast_u8_to_u32;
+		func_memory_cast = io_gltf_cast_u8_to_u32;
 		break;
 
 	case cgltf_component_type_r_16:
 		stride_component = sizeof(int16_t);
-		func_value_cast  = value_cast_i16_to_u32;
+		func_memory_cast = io_gltf_cast_i16_to_u32;
 		break;
 
 	case cgltf_component_type_r_16u:
 		stride_component = sizeof(uint16_t);
-		func_value_cast  = value_cast_u16_to_u32;
+		func_memory_cast = io_gltf_cast_u16_to_u32;
 		break;
 
 	case cgltf_component_type_r_32u:
 		stride_component = sizeof(uint32_t);
-		func_value_cast  = value_cast_u32_to_u32;
+		func_memory_cast = io_gltf_cast_u32_to_u32;
 		break;
 
 	case cgltf_component_type_r_32f:
 		stride_component = sizeof(float);
-		func_value_cast  = value_cast_float_to_u32;
+		func_memory_cast = io_gltf_cast_float_to_u32;
 		break;
 
 	default:
@@ -222,7 +156,7 @@ static uint32_t *io_gltf_read_u32(const cgltf_accessor *const a) {
 		break;
 	}
 
-	return u32_buffer_from_buffer((v->buffer->data + v->offset + a->offset), a->count, a->stride, num_compoonents, stride_component, func_value_cast);
+	return u32_buffer_from_buffer((v->buffer->data + v->offset + a->offset), a->count, a->stride, num_compoonents, stride_component, func_memory_cast);
 }
 
 static float *io_gltf_read_float(const cgltf_accessor *const a, uint32_t *out_num_component) {
@@ -258,37 +192,37 @@ static float *io_gltf_read_float(const cgltf_accessor *const a, uint32_t *out_nu
 		break;
 	}
 
-	uint32_t              stride_component = 0;
-	func_value_cast_float func_value_cast  = NULL;
+	uint32_t               stride_component = 0;
+	func_memory_cast_float func_memory_cast = NULL;
 	switch (a->component_type) {
 	case cgltf_component_type_r_8:
 		stride_component = sizeof(int8_t);
-		func_value_cast  = value_cast_i8_to_float;
+		func_memory_cast = io_gltf_cast_i8_to_float;
 		break;
 
 	case cgltf_component_type_r_8u:
 		stride_component = sizeof(uint8_t);
-		func_value_cast  = value_cast_u8_to_float;
+		func_memory_cast = io_gltf_cast_u8_to_float;
 		break;
 
 	case cgltf_component_type_r_16:
 		stride_component = sizeof(int16_t);
-		func_value_cast  = value_cast_i16_to_float;
+		func_memory_cast = io_gltf_cast_i16_to_float;
 		break;
 
 	case cgltf_component_type_r_16u:
 		stride_component = sizeof(uint16_t);
-		func_value_cast  = value_cast_u16_to_float;
+		func_memory_cast = io_gltf_cast_u16_to_float;
 		break;
 
 	case cgltf_component_type_r_32u:
 		stride_component = sizeof(uint32_t);
-		func_value_cast  = value_cast_u32_to_float;
+		func_memory_cast = io_gltf_cast_u32_to_float;
 		break;
 
 	case cgltf_component_type_r_32f:
 		stride_component = sizeof(float);
-		func_value_cast  = value_cast_float_to_float;
+		func_memory_cast = io_gltf_cast_float_to_float;
 		break;
 
 	default:
@@ -298,7 +232,7 @@ static float *io_gltf_read_float(const cgltf_accessor *const a, uint32_t *out_nu
 
 	if (out_num_component != NULL)
 		*out_num_component = num_compoonents;
-	return float_buffer_from_buffer((v->buffer->data + v->offset + a->offset), a->count, a->stride, num_compoonents, stride_component, func_value_cast);
+	return float_buffer_from_buffer((v->buffer->data + v->offset + a->offset), a->count, a->stride, num_compoonents, stride_component, func_memory_cast);
 }
 
 void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, float *scale, bool parse_vcols) {
@@ -567,7 +501,7 @@ void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, f
 	}
 }
 
-void *io_gltf_parse_v2(char *buf, size_t size, const char *path) {
+void *io_gltf_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback) {
 	raw_mesh_t *raw = NULL;
 
 	cgltf_options gltf_options = {0};

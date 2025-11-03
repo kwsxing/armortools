@@ -20,6 +20,7 @@ flags.export_data_list    = platform == "android"; // .apk contents
 
 let project = new Project(flags.name);
 project.add_project("../base");
+project.add_project("sources/libs");
 project.add_tsfiles("sources");
 project.add_tsfiles("sources/material_nodes");
 project.add_tsfiles("sources/neural_nodes");
