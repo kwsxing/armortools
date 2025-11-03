@@ -1,5 +1,9 @@
 #include "io_mesh.h"
 
+#if defined(ENABLE_OPENMP)
+#include <omp.h>
+#endif
+
 #include <assert.h>
 #include <memory.h>
 #include <stdlib.h>

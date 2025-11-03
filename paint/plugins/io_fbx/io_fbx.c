@@ -10,7 +10,7 @@
 
 static bool  has_next     = false;
 static int   current_node = 0;
-static float scale_pos    = 1.0;
+static float scale_pos    = 1.0f;
 
 void io_fbx_parse_mesh(raw_mesh_t *raw, ufbx_mesh *mesh, ufbx_matrix *to_world, ufbx_matrix *to_world_unscaled) {
 	uint32_t  indices_size = mesh->max_face_triangles * 3;
@@ -91,16 +91,28 @@ void io_fbx_parse_mesh(raw_mesh_t *raw, ufbx_mesh *mesh, ufbx_matrix *to_world, 
 
 	// Pack into 16bit
 	short *posa = malloc(sizeof(short) * vertex_count * 4);
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
 	for (int i = 0; i < vertex_count; ++i) {
-		posa[i * 4]     = posa32[i * 3] * 32767 * inv;
+#else
+	for (int i = 0; i < vertex_count; ++i) {
+#endif
+		posa[i * 4 + 0] = posa32[i * 3 + 0] * 32767 * inv;
 		posa[i * 4 + 1] = posa32[i * 3 + 1] * 32767 * inv;
 		posa[i * 4 + 2] = posa32[i * 3 + 2] * 32767 * inv;
 	}
 
 	short *nora = malloc(sizeof(short) * vertex_count * 2);
 	if (nora32 != NULL) {
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
 		for (int i = 0; i < vertex_count; ++i) {
-			nora[i * 2]     = nora32[i * 3] * 32767;
+#else
+		for (int i = 0; i < vertex_count; ++i) {
+#endif
+			nora[i * 2 + 0] = nora32[i * 3 + 0] * 32767;
 			nora[i * 2 + 1] = nora32[i * 3 + 1] * 32767;
 			posa[i * 4 + 3] = nora32[i * 3 + 2] * 32767;
 		}
@@ -112,8 +124,14 @@ void io_fbx_parse_mesh(raw_mesh_t *raw, ufbx_mesh *mesh, ufbx_matrix *to_world, 
 	short *texa = NULL;
 	if (texa32 != NULL) {
 		texa = malloc(sizeof(short) * vertex_count * 2);
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
 		for (int i = 0; i < vertex_count; ++i) {
-			texa[i * 2]     = texa32[i * 2] * 32767;
+#else
+		for (int i = 0; i < vertex_count; ++i) {
+#endif
+			texa[i * 2 + 0] = texa32[i * 2 + 0] * 32767;
 			texa[i * 2 + 1] = (1.0 - texa32[i * 2 + 1]) * 32767;
 		}
 		free(texa32);
@@ -122,8 +140,14 @@ void io_fbx_parse_mesh(raw_mesh_t *raw, ufbx_mesh *mesh, ufbx_matrix *to_world, 
 	short *cola = NULL;
 	if (cola32 != NULL) {
 		cola = malloc(sizeof(short) * vertex_count * 4);
+#if defined(ENABLE_OPENMP)
+#pragma omp parallel
+#pragma omp for
 		for (int i = 0; i < vertex_count; ++i) {
-			cola[i * 4]     = cola32[i * 4] * 32767;
+#else
+		for (int i = 0; i < vertex_count; ++i) {
+#endif
+			cola[i * 4 + 0] = cola32[i * 4 + 0] * 32767;
 			cola[i * 4 + 1] = cola32[i * 4 + 1] * 32767;
 			cola[i * 4 + 2] = cola32[i * 4 + 2] * 32767;
 			cola[i * 4 + 3] = cola32[i * 4 + 3] * 32767;

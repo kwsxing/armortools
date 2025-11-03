@@ -6,14 +6,15 @@
 #include "iron_gc.h"
 #include "iron_obj.h"
 
+#if defined(ENABLE_OPENMP)
+#include <omp.h>
+#endif
+
 #include <assert.h>
 #include <math.h>
 #include <memory.h>
 #include <stdlib.h>
 #include <string.h>
-
-static bool  has_next  = false;
-static float scale_pos = 1.0;
 
 static uint32_t io_gltf_cast_i8_to_u32(const uint8_t *const data) {
 	int8_t v = *((int8_t *)data);
@@ -235,7 +236,7 @@ static float *io_gltf_read_float(const cgltf_accessor *const a, uint32_t *out_nu
 	return float_buffer_from_buffer((v->buffer->data + v->offset + a->offset), a->count, a->stride, num_compoonents, stride_component, func_memory_cast);
 }
 
-void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, float *scale, bool parse_vcols) {
+float io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, float *scale, bool parse_vcols, float scale_pos) {
 
 	cgltf_primitive *prim = NULL;
 	uint32_t        *inda = NULL;
@@ -253,7 +254,7 @@ void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, f
 
 	if (!inda) {
 		// All of the primitives in the mesh don't have data
-		return;
+		return scale_pos;
 	}
 
 	int index_count = prim->indices->count;
@@ -288,7 +289,7 @@ void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, f
 
 	if (vertex_count == -1) {
 		// No vertex data position attributes found in primitive
-		return;
+		return scale_pos;
 	}
 
 	float *m = to_world;
@@ -404,13 +405,13 @@ void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, f
 				cby *= inv_n;
 				cbz *= inv_n;
 			}
-			nora[i1 * 2]     = (int)(cbx * 32767);
+			nora[i1 * 2 + 0] = (int)(cbx * 32767);
 			nora[i1 * 2 + 1] = (int)(cby * 32767);
 			posa[i1 * 4 + 3] = (int)(cbz * 32767);
-			nora[i2 * 2]     = (int)(cbx * 32767);
+			nora[i2 * 2 + 0] = (int)(cbx * 32767);
 			nora[i2 * 2 + 1] = (int)(cby * 32767);
 			posa[i2 * 4 + 3] = (int)(cbz * 32767);
-			nora[i3 * 2]     = (int)(cbx * 32767);
+			nora[i3 * 2 + 0] = (int)(cbx * 32767);
 			nora[i3 * 2 + 1] = (int)(cby * 32767);
 			posa[i3 * 4 + 3] = (int)(cbz * 32767);
 		}
@@ -499,6 +500,8 @@ void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, f
 		free(cola32);
 		cola32 = NULL;
 	}
+
+	return scale_pos;
 }
 
 void *io_gltf_parse_v2(char *buf, size_t size, const char *path, const io_mesh_config_t *const io_mesh_cfg, io_mesh_progress_callback progress_callback) {
@@ -514,19 +517,29 @@ void *io_gltf_parse_v2(char *buf, size_t size, const char *path, const io_mesh_c
 		any_array_t *meshes = any_array_create(gltf_data->nodes_count);
 		memset(meshes->buffer, 0, sizeof(raw_mesh_t *) * gltf_data->nodes_count);
 
+		float scale_pos = 1.0f;
+
 		for (uint32_t i = 0; i < gltf_data->nodes_count; ++i) {
 			cgltf_node *n = &gltf_data->nodes[i];
 			if (n->mesh == NULL)
 				continue;
 
 			float m[16];
-			cgltf_node_transform_world(n, &m);
+			memset(m, 0, sizeof(float) * 16);
+			m[0]  = 1;
+			m[5]  = 1;
+			m[10] = 1;
+			m[15] = 1;
+			if (io_mesh_cfg == NULL || io_mesh_cfg->parse_transform) {
+				cgltf_node_transform_world(n, &m);
+			}
+
 			float scale[3];
 			scale[0] = 1;
 			scale[1] = 1;
 			scale[2] = 1;
 
-			if (n->has_scale) {
+			if (n->has_scale && (io_mesh_cfg == NULL || io_mesh_cfg->parse_transform)) {
 				scale[0] = n->scale[0];
 				scale[1] = n->scale[1];
 				scale[2] = n->scale[2];
@@ -535,7 +548,7 @@ void *io_gltf_parse_v2(char *buf, size_t size, const char *path, const io_mesh_c
 			raw_mesh_t *part = gc_alloc(sizeof(raw_mesh_t));
 			memset(part, 0, sizeof(raw_mesh_t));
 
-			io_gltf_parse_v2_mesh(part, n->mesh, &m, &scale, false);
+			scale_pos = io_gltf_parse_v2_mesh(part, n->mesh, &m, &scale, false, scale_pos);
 			if (part->posa != NULL) {
 				part->name = malloc(strlen(n->name) + 1);
 				strcpy(part->name, n->name);
