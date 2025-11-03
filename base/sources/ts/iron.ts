@@ -158,6 +158,7 @@ declare function js_call(f: any): string;
 declare function js_call_ptr(f: any, arg: any): string;
 declare function js_call_ptr_str(f: any, arg0: any, arg1: string): string;
 declare function js_pcall_str(f: any, arg0: string): any;
+declare function js_pcall_str_ptr(f: any, arg0: string, arg1: any): any;
 declare function array_remove(ar: any[], e: any): void;
 declare function trim_end(str: string): string;
 declare function gc_run(): void;
