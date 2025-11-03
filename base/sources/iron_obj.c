@@ -4,6 +4,11 @@
 #include "iron_gc.h"
 #include "iron_string.h"
 #include "iron_vec4.h"
+
+#if defined(ENABLE_OPENMP)
+#include <omp.h>
+#endif
+
 #include <assert.h>
 #include <math.h>
 #include <stdlib.h>
