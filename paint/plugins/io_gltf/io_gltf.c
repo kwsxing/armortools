@@ -17,77 +17,77 @@ static float scale_pos = 1.0;
 typedef uint32_t (*func_value_cast_u32)(const uint8_t *const data);
 typedef float (*func_value_cast_float)(const uint8_t *const data);
 
-uint32_t value_cast_i8_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_i8_to_u32(const uint8_t *const data) {
 	int8_t v = *((int8_t *)data);
 	return (uint32_t)v;
 }
 
-uint32_t value_cast_u8_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_u8_to_u32(const uint8_t *const data) {
 	uint8_t v = *((uint8_t *)data);
 	return (uint32_t)v;
 }
 
-uint32_t value_cast_i16_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_i16_to_u32(const uint8_t *const data) {
 	int16_t v = *((int16_t *)data);
 	return (uint32_t)v;
 }
 
-uint32_t value_cast_u16_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_u16_to_u32(const uint8_t *const data) {
 	uint16_t v = *((uint16_t *)data);
 	return (uint32_t)v;
 }
 
-uint32_t value_cast_i32_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_i32_to_u32(const uint8_t *const data) {
 	int32_t v = *((int32_t *)data);
 	return (uint32_t)v;
 }
 
-uint32_t value_cast_u32_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_u32_to_u32(const uint8_t *const data) {
 	uint32_t v = *((uint32_t *)data);
 	return (uint32_t)v;
 }
 
-uint32_t value_cast_float_to_u32(const uint8_t *const data) {
+static uint32_t value_cast_float_to_u32(const uint8_t *const data) {
 	float v = *((float *)data);
 	return (uint32_t)v;
 }
 
-float value_cast_i8_to_float(const uint8_t *const data) {
+static float value_cast_i8_to_float(const uint8_t *const data) {
 	int8_t v = *((int8_t *)data);
 	return (float)v;
 }
 
-float value_cast_u8_to_float(const uint8_t *const data) {
+static float value_cast_u8_to_float(const uint8_t *const data) {
 	uint8_t v = *((uint8_t *)data);
 	return (float)v;
 }
 
-float value_cast_i16_to_float(const uint8_t *const data) {
+static float value_cast_i16_to_float(const uint8_t *const data) {
 	int16_t v = *((int16_t *)data);
 	return (float)v;
 }
 
-float value_cast_u16_to_float(const uint8_t *const data) {
+static float value_cast_u16_to_float(const uint8_t *const data) {
 	uint16_t v = *((uint16_t *)data);
 	return (float)v;
 }
 
-float value_cast_i32_to_float(const uint8_t *const data) {
+static float value_cast_i32_to_float(const uint8_t *const data) {
 	int32_t v = *((int32_t *)data);
 	return (float)v;
 }
 
-float value_cast_u32_to_float(const uint8_t *const data) {
+static float value_cast_u32_to_float(const uint8_t *const data) {
 	uint32_t v = *((uint32_t *)data);
 	return (float)v;
 }
 
-float value_cast_float_to_float(const uint8_t *const data) {
+static float value_cast_float_to_float(const uint8_t *const data) {
 	float v = *((float *)data);
 	return (float)v;
 }
 
-uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
+static uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
                                  func_value_cast_u32 value_cast) {
 	assert(buffer != NULL);
 	assert(count != 0);
@@ -119,7 +119,7 @@ uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, ui
 	return res;
 }
 
-float *float_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
+static float *float_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
                                 func_value_cast_float value_cast) {
 	assert(buffer != NULL);
 	assert(count != 0);
@@ -151,7 +151,7 @@ float *float_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uin
 	return res;
 }
 
-uint32_t *io_gltf_read_u32(const cgltf_accessor *const a) {
+static uint32_t *io_gltf_read_u32(const cgltf_accessor *const a) {
 	assert(a != NULL);
 	if (a == NULL)
 		return NULL;
@@ -225,7 +225,7 @@ uint32_t *io_gltf_read_u32(const cgltf_accessor *const a) {
 	return u32_buffer_from_buffer((v->buffer->data + v->offset + a->offset), a->count, a->stride, num_compoonents, stride_component, func_value_cast);
 }
 
-float *io_gltf_read_float(const cgltf_accessor *const a, uint32_t *out_num_component) {
+static float *io_gltf_read_float(const cgltf_accessor *const a, uint32_t *out_num_component) {
 	assert(a != NULL);
 	if (a == NULL)
 		return NULL;
