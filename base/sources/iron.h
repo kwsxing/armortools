@@ -119,6 +119,13 @@ void *js_pcall_str_ptr(void *p, char *arg0, void *arg1) {
 	return (void *)result;
 }
 
+void *js_pcall_str_ptr_ptr(void *p, char *arg0, void *arg1, void *arg2) {
+	JSValue  argv[] = {JS_NewString(js_ctx, arg0), JS_NewBigUint64(js_ctx, (uint64_t)arg1), JS_NewBigUint64(js_ctx, (uint64_t)arg2)};
+	uint64_t result;
+	JS_ToBigUint64(js_ctx, &result, js_call_arg(p, 3, argv));
+	return (void *)result;
+}
+
 char *js_call(void *p) {
 	return (char *)JS_ToCString(js_ctx, js_call_arg(p, 0, NULL));
 }
@@ -140,6 +147,9 @@ void *js_pcall_str(void *p, char *arg0) {
 	return NULL;
 }
 void *js_pcall_str_ptr(void *p, char *arg0, void *arg1) {
+	return NULL;
+}
+void *js_pcall_str_ptr(void *p, char *arg0, void *arg1, void *arg2) {
 	return NULL;
 }
 char *js_call(void *p) {
