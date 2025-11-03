@@ -1,8 +1,8 @@
 
-function import_fbx(path) {
+function import_fbx(path, io_mesh_cfg, progress_callback) {
 	let b = data_get_blob(path);
 	data_delete_blob(path);
-	return io_fbx_parse(b);
+	return io_fbx_parse(b, path, io_mesh_cfg, progress_callback);
 }
 
 let plugin = plugin_create();

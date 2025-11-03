@@ -3,19 +3,20 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-typedef enum io_mesh_split_type {
+typedef enum {
 	IO_MESH_SPLIT_TYPE_OBJECT   = 0,
 	IO_MESH_SPLIT_TYPE_GROUP    = 1,
 	IO_MESH_SPLIT_TYPE_MATERIAL = 2,
 	IO_MESH_SPLIT_TYPE_UDIM     = 3,
-} io_mesh_split_type_t;
+} _split_type_t;
 
 typedef struct io_mesh_config {
-	io_mesh_split_type_t split_type;
-	bool                 parse_transform;
-	bool                 parse_vcols;
-	bool                 uv_wrap;
-	bool                 merge_one;
+	_split_type_t split_by;
+	bool          parse_transform;
+	bool          parse_vcols;
+	bool          parse_texs;
+	bool          uv_wrap;
+	bool          merge_one;
 } io_mesh_config_t;
 
 typedef bool (*io_mesh_progress_callback)(uint32_t completed, uint32_t total, char *message, bool finished);

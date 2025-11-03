@@ -1,3 +1,6 @@
+/// include "../sources/libs/io_mesh.h"
+
+declare type io_mesh_config_t = any;
 
 type context_t = {
 	texture?: asset_t;
@@ -32,10 +35,7 @@ type context_t = {
 	format_type?: texture_ldr_format_t;
 	format_quality?: f32;
 	layers_destination?: export_destination_t;
-	split_by?: split_type_t;
-	parse_transform?: bool;
-	parse_vcols?: bool;
-	parse_texs?: bool;
+	io_mesh_cfg?: io_mesh_config_t;
 	select_time?: f32;
 	viewport_mode?: viewport_mode_t;
 	render_mode?: render_mode_t;
@@ -248,10 +248,13 @@ function context_create(): context_t {
 	c.format_type             = texture_ldr_format_t.PNG;
 	c.format_quality          = 100.0;
 	c.layers_destination      = export_destination_t.DISK;
-	c.split_by                = split_type_t.OBJECT;
-	c.parse_transform         = true;
-	c.parse_vcols             = false;
-	c.parse_texs              = false;
+	c.io_mesh_cfg             = {};
+	c.io_mesh_cfg.split_by    = split_type_t.OBJECT;
+	c.io_mesh_cfg.parse_transform = true;
+	c.io_mesh_cfg.parse_vcols     = false;
+	c.io_mesh_cfg.parse_texs      = false;
+	c.io_mesh_cfg.uv_wrap         = false;
+	c.io_mesh_cfg.merge_one       = false;
 	c.select_time             = 0.0;
 	c.viewport_mode           = config_raw.viewport_mode == 0 ? viewport_mode_t.LIT : viewport_mode_t.PATH_TRACE;
 	/// if (arm_android || arm_ios)

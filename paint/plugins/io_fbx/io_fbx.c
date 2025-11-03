@@ -196,7 +196,7 @@ void *io_fbx_parse(char *buf, size_t size) {
 	return raw;
 }
 
-void *io_fbx_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback) {
+void *io_fbx_parse_v2(char *buf, size_t size, const char *path, const io_mesh_config_t *const io_mesh_cfg, io_mesh_progress_callback progress_callback) {
 	raw_mesh_t *raw = NULL;
 
 	ufbx_load_opts opts  = {.generate_missing_normals = true};

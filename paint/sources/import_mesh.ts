@@ -27,7 +27,7 @@ function import_mesh_run(path: string, _clear_layers: bool = true, replace_exist
 		let ext: string      = substring(path, string_last_index_of(path, ".") + 1, path.length);
 		ext                  = to_lower_case(ext); // our importer is registed in the lower
 		let importer: any    = map_get(path_mesh_importers, ext); // JSValue -> (s: string)=>raw_mesh_t
-		let mesh: raw_mesh_t = js_pcall_str_ptr(importer, path, progress_callback);
+		let mesh: raw_mesh_t = js_pcall_str_ptr_ptr(importer, path, context_raw.io_mesh_cfg, progress_callback);
 		if (mesh != null) {
 			if (mesh.name == "") {
 				mesh.name = path_base_name(path);
@@ -37,7 +37,7 @@ function import_mesh_run(path: string, _clear_layers: bool = true, replace_exist
 
 			let has_next: bool = mesh.has_next;
 			while (has_next) {
-				let mesh: raw_mesh_t = js_pcall_str_ptr(importer, path, progress_callback);
+				let mesh: raw_mesh_t = js_pcall_str_ptr_ptr(importer, path, context_raw.io_mesh_cfg, progress_callback);
 				if (mesh.name == "") {
 					mesh.name = path_base_name(path);
 				}

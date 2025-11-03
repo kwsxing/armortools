@@ -501,7 +501,7 @@ void io_gltf_parse_v2_mesh(raw_mesh_t *raw, cgltf_mesh *mesh, float *to_world, f
 	}
 }
 
-void *io_gltf_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback) {
+void *io_gltf_parse_v2(char *buf, size_t size, const char *path, const io_mesh_config_t *const io_mesh_cfg, io_mesh_progress_callback progress_callback) {
 	raw_mesh_t *raw = NULL;
 
 	cgltf_options gltf_options = {0};

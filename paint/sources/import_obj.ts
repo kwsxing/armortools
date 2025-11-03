@@ -1,6 +1,6 @@
 
 function import_obj_run(path: string, replace_existing: bool = true) {
-	let i: split_type_t = context_raw.split_by;
+	let i: split_type_t = context_raw.io_mesh_cfg.split_by;
 	let is_udim: bool   = i == split_type_t.UDIM;
 	let split_code: i32 = (i == split_type_t.OBJECT || is_udim) ? char_code_at("o", 0)
 	                      : i == split_type_t.GROUP             ? char_code_at("g", 0)
@@ -46,7 +46,7 @@ function import_obj_run(path: string, replace_existing: bool = true) {
 			}
 			array_push(parts, part);
 		}
-		if (context_raw.split_by == split_type_t.MATERIAL) {
+		if (context_raw.io_mesh_cfg.split_by == split_type_t.MATERIAL) {
 			let posa0: i16_array_t;
 			let posa1: i16_array_t;
 			let nora0: i16_array_t;

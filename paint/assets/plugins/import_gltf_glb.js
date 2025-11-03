@@ -1,8 +1,8 @@
 
-function import_gltf_glb(path) {
+function import_gltf_glb(path, io_mesh_cfg, progress_callback) {
 	let b = data_get_blob(path);
 	data_delete_blob(path);
-	return io_gltf_parse(b, path);
+	return io_gltf_parse(b, path, io_mesh_cfg, progress_callback);
 }
 
 let plugin = plugin_create();

@@ -402,7 +402,7 @@ function project_import_mesh_box(path: string, replace_existing: bool = true, cl
 
 			if (ends_with(to_lower_case(path), ".obj")) {
 				let split_by_combo: string[] = [ tr("Object"), tr("Group"), tr("Material"), tr("UDIM Tile") ];
-				context_raw.split_by         = ui_combo(ui_handle(__ID__), split_by_combo, tr("Split By"), true);
+				context_raw.io_mesh_cfg.split_by         = ui_combo(ui_handle(__ID__), split_by_combo, tr("Split By"), true);
 				if (ui.is_hovered) {
 					ui_tooltip(tr("Split .obj mesh into objects"));
 				}
@@ -410,8 +410,8 @@ function project_import_mesh_box(path: string, replace_existing: bool = true, cl
 
 			if (ends_with(to_lower_case(path), ".fbx")) {
 				let h: ui_handle_t      = ui_handle(__ID__);
-				h.b                     = context_raw.parse_vcols;
-				context_raw.parse_vcols = ui_check(h, tr("Parse Vertex Colors"));
+				h.b                     = context_raw.io_mesh_cfg.parse_vcols;
+				context_raw.io_mesh_cfg.parse_vcols = ui_check(h, tr("Parse Vertex Colors"));
 				if (ui.is_hovered) {
 					ui_tooltip(tr("Import vertex color data"));
 				}
@@ -419,8 +419,8 @@ function project_import_mesh_box(path: string, replace_existing: bool = true, cl
 
 			if (ends_with(to_lower_case(path), ".gltf") || ends_with(to_lower_case(path), ".glb")) {
 				let h: ui_handle_t     = ui_handle(__ID__);
-				h.b                    = context_raw.parse_texs;
-				context_raw.parse_texs = ui_check(h, tr("Parse Texcoord"));
+				h.b                    = context_raw.io_mesh_cfg.parse_texs;
+				context_raw.io_mesh_cfg.parse_texs = ui_check(h, tr("Parse Texcoord"));
 				if (ui.is_hovered) {
 					ui_tooltip(tr("Import vertex color data"));
 				}

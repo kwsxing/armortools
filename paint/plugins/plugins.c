@@ -42,27 +42,33 @@ FN(io_usd_parse) {
 }
 
 void *io_gltf_parse(char *buf, size_t size, const char *path);
-void *io_gltf_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback);
+void *io_gltf_parse_v2(char *buf, size_t size, const char *path, const io_mesh_config_t *const io_mesh_cfg, io_mesh_progress_callback progress_callback);
 FN(io_gltf_parse) {
 	size_t      len;
 	void       *ab   = JS_GetArrayBuffer(ctx, &len, argv[0]);
 	const char *path = JS_ToCString(ctx, argv[1]);
+	io_mesh_config_t* io_mesh_cfg = NULL;
+	if (JS_ToBigUint64(ctx, &io_mesh_cfg, argv[2]))
+		io_mesh_cfg = NULL;
 	io_mesh_progress_callback progress_callback = NULL;
-	if (JS_ToBigUint64(ctx, &progress_callback, argv[2]))
+	if (JS_ToBigUint64(ctx, &progress_callback, argv[3]))
 		progress_callback = NULL;
-	return JS_NewBigUint64(ctx, (uint64_t)io_gltf_parse_v2(ab, len, path, progress_callback));
+	return JS_NewBigUint64(ctx, (uint64_t)io_gltf_parse_v2(ab, len, path, io_mesh_cfg, progress_callback));
 }
 
 void *io_fbx_parse(char *buf, size_t size);
-void *io_fbx_parse_v2(char *buf, size_t size, const char *path, io_mesh_progress_callback progress_callback);
+void *io_fbx_parse_v2(char *buf, size_t size, const char *path, const io_mesh_config_t *const io_mesh_cfg, io_mesh_progress_callback progress_callback);
 FN(io_fbx_parse) {
 	size_t len;
 	void  *ab = JS_GetArrayBuffer(ctx, &len, argv[0]);
 	const char *path = JS_ToCString(ctx, argv[1]);
+	io_mesh_config_t* io_mesh_cfg = NULL;
+	if (JS_ToBigUint64(ctx, &io_mesh_cfg, argv[2]))
+		io_mesh_cfg = NULL;
 	io_mesh_progress_callback progress_callback = NULL;
-	if (JS_ToBigUint64(ctx, &progress_callback, argv[2]))
+	if (JS_ToBigUint64(ctx, &progress_callback, argv[3]))
 		progress_callback = NULL;
-	return JS_NewBigUint64(ctx, (uint64_t)io_fbx_parse_v2(ab, len, path, progress_callback));
+	return JS_NewBigUint64(ctx, (uint64_t)io_fbx_parse_v2(ab, len, path, io_mesh_cfg, progress_callback));
 }
 
 VOID_FN_STR(console_log)
@@ -277,8 +283,8 @@ void plugin_embed() {
 	BIND(io_svg_parse, 1);
 	BIND(io_exr_parse, 1);
 	BIND(io_usd_parse, 1);
-	BIND(io_gltf_parse, 3);
-	BIND(io_fbx_parse, 3);
+	BIND(io_gltf_parse, 4);
+	BIND(io_fbx_parse, 4);
 
 	BIND(console_log, 1);
 	BIND(console_info, 1);
