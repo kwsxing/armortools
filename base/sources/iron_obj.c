@@ -665,16 +665,18 @@ void obj_destroy(raw_mesh_t *part) {
 	// 	free(part->udims);
 	// }
 
-	if (part->name != NULL)
-		free(part->name);
 	if (part->posa != NULL)
 		free(part->posa);
 	if (part->nora != NULL)
 		free(part->nora);
 	if (part->texa != NULL)
 		free(part->texa);
+	if (part->cola != NULL)
+		free(part->cola);
 	if (part->inda != NULL)
 		free(part->inda);
+	if (part->name != NULL)
+		free(part->name);
 	gc_free(part);
 }
 
