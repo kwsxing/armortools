@@ -8,7 +8,7 @@
 #include <memory.h>
 #include <stdlib.h>
 
-static uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
+uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
                                         func_memory_cast_u32 memory_cast) {
 	assert(buffer != NULL);
 	assert(count != 0);
@@ -36,7 +36,7 @@ static uint32_t *u32_buffer_from_buffer(const uint8_t *const buffer, uint32_t co
 	return res;
 }
 
-static float *float_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
+float *float_buffer_from_buffer(const uint8_t *const buffer, uint32_t count, uint32_t stride, uint32_t num_component, uint32_t stride_component,
                                        func_memory_cast_float memory_cast) {
 	assert(buffer != NULL);
 	assert(count != 0);
