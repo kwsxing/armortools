@@ -1502,7 +1502,7 @@ function ui_nodes_make_node_preview(node: ui_node_t) {
 
 	let img: gpu_texture_t = any_imap_get(context_raw.node_preview_map, node.id);
 	if (img == null) {
-		img = gpu_create_render_target(util_render_material_preview_size, util_render_material_preview_size);
+		img = gpu_create_render_target(util_render_node_preview_size, util_render_node_preview_size);
 		any_imap_set(context_raw.node_preview_map, node.id, img);
 	}
 
@@ -1550,9 +1550,9 @@ function ui_nodes_get_group(canvases: ui_node_canvas_t[], name: string): ui_node
 
 function ui_nodes_capture_output() {
 	let ui_nodes: ui_nodes_t = ui_nodes_get_nodes();
-	let c: ui_node_canvas_t = ui_nodes_get_canvas(true);
-	let sel: ui_node_t     = ui_get_node(c.nodes, ui_nodes.nodes_selected_id[0]);
-	let img: gpu_texture_t = ui_nodes_get_node_preview_image(sel);
+	let c: ui_node_canvas_t  = ui_nodes_get_canvas(true);
+	let sel: ui_node_t       = ui_get_node(c.nodes, ui_nodes.nodes_selected_id[0]);
+	let img: gpu_texture_t   = ui_nodes_get_node_preview_image(sel);
 	if (img == null) {
 		return;
 	}
